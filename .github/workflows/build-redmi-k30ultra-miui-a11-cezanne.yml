@@ -119,6 +119,11 @@ jobs:
         run: |
           # Only ${{ env.DEVICE_NAME }} use it.
           cd $GITHUB_WORKSPACE/device_kernel
+          DEFCONFIG_PATH="./arch/${{ env.KERNEL_ARCH }}/configs/${{ env.DEFCONFIG_NAME }}"
+          echo "[+] Adding CONFIG_KSU_MULTI_MANAGER_SUPPORT configs to defconfig..."
+          echo "CONFIG_KSU_MULTI_MANAGER_SUPPORT=y" >> $DEFCONFIG_PATH
+          echo "[+] Current KSU_MULTI_MANAGER_SUPPORT config status:"
+          grep "CONFIG_KSU_MULTI_MANAGER_SUPPORT" $DEFCONFIG_PATH
           # Nothing
 
       - name: 🧰 Patch Kernel of Re:Kernel
