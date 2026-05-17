@@ -1,20 +1,23 @@
 --- a/fs/notify/fdinfo.c	2026-05-16 22:58:11.000000000 +0800
-+++ b/fs/notify/fdinfo.c	2026-05-17 11:01:01.000000000 +0800
-@@ -83,16 +83,51 @@
++++ b/fs/notify/fdinfo.c	2026-05-17 11:24:44.527591282 +0800
+@@ -77,9 +77,6 @@
+ 	struct inotify_inode_mark *inode_mark;
+ 	struct inode *inode;
+ 
+-	if (!(mark->connector->flags & FSNOTIFY_OBJ_TYPE_INODE))
+-		return;
+-
  	inode_mark = container_of(mark, struct inotify_inode_mark, fsn_mark);
  	inode = igrab(mark->connector->inode);
  	if (inode) {
--		/*
--		 * IN_ALL_EVENTS represents all of the mask bits
--		 * that we expose to userspace.  There is at
--		 * least one bit (FS_EVENT_ON_CHILD) which is
--		 * used only internally to the kernel.
--		 */
--		u32 mask = mark->mask & IN_ALL_EVENTS;
--		seq_printf(m, "inotify wd:%x ino:%lx sdev:%x mask:%x ignored_mask:%x ",
+@@ -90,6 +87,51 @@
+ 		 * used only internally to the kernel.
+ 		 */
+ 		u32 mask = mark->mask & IN_ALL_EVENTS;
++
 +#ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
 +		struct mount *mnt;
-+		// 4.14 内核从 seq_file 的 private 提取对应的 struct file
++		// 从 seq_file 的 private 提取对应的 struct file
 +		struct file *file = (struct file *)m->private; 
 +		if (file) {
 +			mnt = real_mount(file->f_path.mnt);
@@ -37,9 +40,10 @@
 +				if (!path.dentry->d_inode) {
 +					goto out_path_put;
 +				}
++				// 修复点：这里将 inotify_mark_user_mask(mark) 改回 4.14 本地变量 mask
 +				seq_printf(m, "inotify wd:%x ino:%lx sdev:%x mask:%x ignored_mask:0 ",
 +						inode_mark->wd, path.dentry->d_inode->i_ino, path.dentry->d_inode->i_sb->s_dev,
-+						inotify_mark_user_mask(mark));
++						mask);
 +				show_mark_fhandle(m, path.dentry->d_inode);
 +				seq_putc(m, '\n');
 +				path_put(&path);
@@ -54,10 +58,7 @@
 +		}
 +orig_flow:
 +#endif
-+		seq_printf(m, "inotify wd:%x ino:%lx sdev:%x mask:%x ignored_mask:0 ",
++		// 原版固有的打印流，保持原样使用 mask 变量
+ 		seq_printf(m, "inotify wd:%x ino:%lx sdev:%x mask:%x ignored_mask:%x ",
  			   inode_mark->wd, inode->i_ino, inode->i_sb->s_dev,
--			   mask, mark->ignored_mask);
-+			   inotify_mark_user_mask(mark));
- 		show_mark_fhandle(m, inode);
- 		seq_putc(m, '\n');
- 		iput(inode);
+ 			   mask, mark->ignored_mask);
