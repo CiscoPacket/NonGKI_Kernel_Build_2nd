@@ -119,12 +119,6 @@ jobs:
         run: |
           # Only ${{ env.DEVICE_NAME }} use it.
           cd $GITHUB_WORKSPACE/device_kernel
-          DEFCONFIG_PATH="./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}"
-          echo "[+] Adding KALLSYMS configs to defconfig..."
-          echo "CONFIG_KALLSYMS=y" >> $DEFCONFIG_PATH
-          echo "CONFIG_KALLSYMS_ALL=y" >> $DEFCONFIG_PATH
-          echo "[+] Current KALLSYMS config status:"
-          grep "CONFIG_KALLSYMS" $DEFCONFIG_PATH
           # Nothing
 
       - name: 🧰 Patch Kernel of Re:Kernel
