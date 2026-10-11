@@ -117,6 +117,15 @@ jobs:
         run: |
           # Only ${{ env.DEVICE_NAME }} use it.
           cd $GITHUB_WORKSPACE/device_kernel
+          git clone --depth 1 --filter=blob:none --no-checkout -b lineage-17.1 \
+          https://github.com/LineageOS/android_kernel_xiaomi_sdm845 /tmp/los
+          cd /tmp/los && git sparse-checkout init --no-cone && \
+          git sparse-checkout set /drivers/staging/qcacld-3.0/ /drivers/staging/qca-wifi-host-cmn/ /drivers/staging/fw-api/ && \
+          git checkout -q && cd -
+          cp -r /tmp/los/drivers/staging/{qcacld-3.0,qca-wifi-host-cmn,fw-api} drivers/staging/
+          sed -i '/misysinfofreader\/Kconfig/a source "drivers/staging/qcacld-3.0/Kconfig"' drivers/staging/Kconfig
+          sed -i '/CONFIG_MISYSINFOFREADER/a obj-$(CONFIG_QCA_CLD_WLAN)\t+= qcacld-3.0/' drivers/staging/Makefile
+          echo 'CONFIG_QCA_CLD_WLAN=y' >> arch/arm64/configs/dipper_user_defconfig
           # Nothing
 
       - name: 🧰 Patch Kernel of Re:Kernel
