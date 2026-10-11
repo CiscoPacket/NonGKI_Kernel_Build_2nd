@@ -19,10 +19,10 @@ env:
   CLANG_BRANCH : ""
 
   GCC_GNU : false
-  GCC_64_SOURCE : "https://github.com/dandelion64-Archives/aarch64-linux-android-4.9.git"
-  GCC_64_BRANCH : "main"
-  GCC_32_SOURCE : "https://github.com/xiangfeidexiaohuo/GCC-4.9.git"
-  GCC_32_BRANCH : "arm32"
+  GCC_64_SOURCE : "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9.git"
+  GCC_64_BRANCH : "android10-release"
+  GCC_32_SOURCE : "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9.git"
+  GCC_32_BRANCH : "android10-release"
 
   DEFCONFIG_SOURCE: ""
   DEFCONFIG_NAME : "dipper_user_defconfig"
@@ -49,7 +49,7 @@ env:
   ROM_TEXT : "miui_a10_4.9"
 
   # Other env
-  PYTHON_VERSION: "3" # Only 2(Ubuntu 22.04 and Ubuntu 20.04) or 3(Any OS Versions).
+  PYTHON_VERSION: "2" # Only 2(Ubuntu 22.04 and Ubuntu 20.04) or 3(Any OS Versions).
 
   PACK_METHOD: "AnyKernel3" # Anykernel3 need SOURCE and BRANCH, MKBOOTIMG needn't it.
   PACK_KMODULES: "false" # if u want pack kernel modules (.ko) into Anykernel3.
@@ -90,7 +90,7 @@ env:
 jobs:
   build-kernel:
     name: Xiaomi 8 (MIUI 12.5 A10)
-    runs-on: ubuntu-24.04 # u can changed to ubuntu 22.04, and need container set ubuntu-24.04
+    runs-on: ubuntu-22.04.04 # u can changed to ubuntu 22.04, and need container set ubuntu-24.04
     # container: archlinux/archlinux:latest # if u need use arch linux -> archlinux/archlinux:latest or ubuntu 20.04 -> ubuntu:focal
     env:
       CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
