@@ -52,7 +52,7 @@ env:
   PYTHON_VERSION: "2" # Only 2(Ubuntu 22.04 and Ubuntu 20.04) or 3(Any OS Versions).
 
   PACK_METHOD: "AnyKernel3" # Anykernel3 need SOURCE and BRANCH, MKBOOTIMG needn't it.
-  PACK_KMODULES: "false" # if u want pack kernel modules (.ko) into Anykernel3.
+  PACK_KMODULES: "true" # if u want pack kernel modules (.ko) into Anykernel3.
 
   KERNELSU_METHOD: "manual" # shell, manual and only.
 
@@ -79,7 +79,7 @@ env:
   GENERATE_DTB: "false" # if u kernel need DTB , but cannot auto generate it. (Only Anykernel3).
   GENERATE_CHIP: "qcom" # only supported for qcom and mediatek.
 
-  BUILD_DEBUGGER: "true" # Output build errors.
+  BUILD_DEBUGGER: "false" # Output build errors.
   SKIP_PATCH: "false" # Ignore errors found in Patch Debugger.
 
   BUILD_OTHER_CONFIG: "false" # Merge config files.
@@ -132,7 +132,7 @@ jobs:
             https://github.com/MiCode/vendor_qcom_opensource_audio-kernel.git techpack/audio
           # 官方 fragment 把编解码器/声卡驱动编成模块(=m)，而本 workflow 的 AnyKernel3 不打模块，
           # 模块不会上机 → 全部改为内置(=y)，编进内核镜像才能生效
-          sed -i 's/=m$/=y/' techpack/audio/config/sdm845auto.conf
+          # sed -i 's/=m$/=y/' techpack/audio/config/sdm845auto.conf
 
           # ---- defconfig 补充 ----
           echo 'CONFIG_QCA_CLD_WLAN=y' >> arch/arm64/configs/dipper_user_defconfig
