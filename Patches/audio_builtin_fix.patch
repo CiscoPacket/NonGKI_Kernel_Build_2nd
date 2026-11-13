@@ -1,0 +1,237 @@
+diff --git a/techpack/audio/Makefile b/techpack/audio/Makefile
+index de65a18..b469af3 100644
+--- a/techpack/audio/Makefile
++++ b/techpack/audio/Makefile
+@@ -35,7 +35,7 @@ LINUXINCLUDE    += \
+                 -include $(srctree)/techpack/audio/config/sdxpoorwillsautoconf.h
+ endif
+ 
+-obj-y += asoc/
+-obj-y += dsp/
+-obj-y += ipc/
+ obj-y += soc/
++obj-y += ipc/
++obj-y += dsp/
++obj-y += asoc/
+diff --git a/techpack/audio/asoc/Makefile b/techpack/audio/asoc/Makefile
+index f0edb9b..c9b6aff 100644
+--- a/techpack/audio/asoc/Makefile
++++ b/techpack/audio/asoc/Makefile
+@@ -11,22 +11,6 @@ obj-$(CONFIG_SND_SOC_QDSP6V2) += snd-soc-qdsp6v2.o
+ snd-soc-cpe-objs := msm-cpe-lsm.o
+ obj-$(CONFIG_SND_SOC_CPE) += snd-soc-cpe.o
+ 
+-# for MSM8998 sound card driver
+-snd-soc-msm8998-objs := msm8998.o
+-obj-$(CONFIG_SND_SOC_MACHINE_MSM8998) += snd-soc-msm8998.o
+-
+-# for SDM670 sound card driver
+-snd-soc-sdm670-objs := sdm660-common.o sdm660-internal.o sdm660-external.o sdm660-ext-dai-links.o
+-obj-$(CONFIG_SND_SOC_SDM670) += snd-soc-sdm670.o
+-
+-# for SDM845 sound card driver
+-snd-soc-sdm845-objs := sdm845.o
+-obj-$(CONFIG_SND_SOC_MACHINE_SDM845) += snd-soc-sdm845.o
+-
+-# for SDXPOORWILLS sound card driver
+-snd-soc-sdxpoorwills-objs := sdxpoorwills.o
+-obj-$(CONFIG_SND_SOC_MACHINE_SDXPOORWILLS) += snd-soc-sdxpoorwills.o
+-
+ snd-soc-qdsp6v2-objs += msm-dai-q6-v2.o msm-pcm-q6-v2.o \
+ 			msm-pcm-routing-v2.o msm-compress-q6-v2.o \
+ 			msm-pcm-afe-v2.o msm-pcm-voip-v2.o \
+@@ -45,3 +29,20 @@ obj-$(CONFIG_DTS_SRS_TM) += msm-dts-srs-tm-config.o
+ obj-$(CONFIG_QTI_PP) += msm-qti-pp-config.o
+ obj-y += codecs/
+ obj-y += elliptic/
++
++# Machine drivers must initialize after codecs and DSP DAIs when built-in
++# for MSM8998 sound card driver
++snd-soc-msm8998-objs := msm8998.o
++obj-$(CONFIG_SND_SOC_MACHINE_MSM8998) += snd-soc-msm8998.o
++
++# for SDM670 sound card driver
++snd-soc-sdm670-objs := sdm660-common.o sdm660-internal.o sdm660-external.o sdm660-ext-dai-links.o
++obj-$(CONFIG_SND_SOC_SDM670) += snd-soc-sdm670.o
++
++# for SDM845 sound card driver
++snd-soc-sdm845-objs := sdm845.o
++obj-$(CONFIG_SND_SOC_MACHINE_SDM845) += snd-soc-sdm845.o
++
++# for SDXPOORWILLS sound card driver
++snd-soc-sdxpoorwills-objs := sdxpoorwills.o
++obj-$(CONFIG_SND_SOC_MACHINE_SDXPOORWILLS) += snd-soc-sdxpoorwills.o
+diff --git a/techpack/audio/asoc/codecs/Makefile b/techpack/audio/asoc/codecs/Makefile
+index 67ce346..4ea925d 100644
+--- a/techpack/audio/asoc/codecs/Makefile
++++ b/techpack/audio/asoc/codecs/Makefile
+@@ -15,6 +15,18 @@ snd-soc-wcd-spi-objs := wcd-spi.o
+ snd-soc-wcd9335-objs := wcd9335.o
+ snd-soc-wcd-cpe-objs := wcd_cpe_services.o wcd_cpe_core.o
+ 
++# Core codec/pinctrl/irq/clk drivers must register before codec drivers when built-in
++wcd-core-objs                  := wcd9xxx-rst.o wcd9xxx-core-init.o \
++				wcd9xxx-core.o wcd9xxx-irq.o \
++				wcd9xxx-slimslave.o wcd9xxx-utils.o \
++				wcd9335-regmap.o wcd9335-tables.o \
++				msm-cdc-pinctrl.o msm-cdc-supply.o
++wcd-core-objs	+= wcd934x/wcd934x-regmap.o
++wcd-core-objs	+= wcd934x/wcd934x-tables.o
++
++obj-$(CONFIG_WCD9XXX_CODEC_CORE) += wcd-core.o
++obj-$(CONFIG_SND_SOC_WCD9XXX_V2) += snd-soc-wcd9xxx.o
++
+ obj-$(CONFIG_SND_SOC_WCD9335) += snd-soc-wcd9335.o
+ obj-$(CONFIG_SND_SOC_WCD_CPE)   += snd-soc-wcd-cpe.o
+ obj-$(CONFIG_SND_SOC_WCD934X)	+= wcd934x/
+@@ -23,21 +35,10 @@ obj-$(CONFIG_SND_SOC_TAS2559)   += tas2559/
+ obj-$(CONFIG_SND_SOC_SDM660_CDC) += sdm660_cdc/
+ obj-$(CONFIG_SND_SOC_MSM_SDW) += msm_sdw/
+ 
+-obj-$(CONFIG_SND_SOC_WCD9XXX_V2) += snd-soc-wcd9xxx.o
+ obj-$(CONFIG_SND_SOC_WCD_MBHC)  += snd-soc-wcd-mbhc.o
+ obj-$(CONFIG_SND_SOC_WSA881X)	+= snd-soc-wsa881x.o
+ obj-$(CONFIG_SND_SOC_WCD_SPI)  += snd-soc-wcd-spi.o
+ 
+ snd-soc-msm-stub-objs := msm_stub.o
+ obj-$(CONFIG_SND_SOC_MSM_STUB)  += snd-soc-msm-stub.o
+-
+-wcd-core-objs                  := wcd9xxx-rst.o wcd9xxx-core-init.o \
+-				wcd9xxx-core.o wcd9xxx-irq.o \
+-				wcd9xxx-slimslave.o wcd9xxx-utils.o \
+-				wcd9335-regmap.o wcd9335-tables.o \
+-				msm-cdc-pinctrl.o msm-cdc-supply.o
+-wcd-core-objs	+= wcd934x/wcd934x-regmap.o
+-wcd-core-objs	+= wcd934x/wcd934x-tables.o
+-
+-obj-$(CONFIG_WCD9XXX_CODEC_CORE) += wcd-core.o
+ obj-$(CONFIG_SND_SOC_MSM_HDMI_CODEC_RX) += msm_hdmi_codec_rx.o
+diff --git a/techpack/audio/asoc/codecs/wcd-mbhc-v2.c b/techpack/audio/asoc/codecs/wcd-mbhc-v2.c
+index bfc471b..ac51f0b 100644
+--- a/techpack/audio/asoc/codecs/wcd-mbhc-v2.c
++++ b/techpack/audio/asoc/codecs/wcd-mbhc-v2.c
+@@ -1780,7 +1780,7 @@ int wcd_mbhc_start(struct wcd_mbhc *mbhc, struct wcd_mbhc_config *mbhc_cfg)
+ 		/* init PMI notifier */
+ 		rc = wcd_mbhc_usb_c_analog_init(mbhc);
+ 		if (rc) {
+-			rc = EPROBE_DEFER;
++			rc = -EPROBE_DEFER;
+ 			goto err;
+ 		}
+ 	}
+diff --git a/techpack/audio/asoc/codecs/wcd934x/wcd934x.c b/techpack/audio/asoc/codecs/wcd934x/wcd934x.c
+index 1004a82..4232ba3 100644
+--- a/techpack/audio/asoc/codecs/wcd934x/wcd934x.c
++++ b/techpack/audio/asoc/codecs/wcd934x/wcd934x.c
+@@ -11014,6 +11014,7 @@ static int tavil_probe(struct platform_device *pdev)
+ 	/* Register for Clock */
+ 	wcd_ext_clk = clk_get(tavil->wcd9xxx->dev, "wcd_clk");
+ 	if (IS_ERR(wcd_ext_clk)) {
++		ret = PTR_ERR(wcd_ext_clk);
+ 		dev_err(tavil->wcd9xxx->dev, "%s: clk get %s failed\n",
+ 			__func__, "wcd_ext_clk");
+ 		goto err_clk;
+diff --git a/techpack/audio/asoc/codecs/wcd9xxx-core.c b/techpack/audio/asoc/codecs/wcd9xxx-core.c
+index ffadd60..23e7189 100644
+--- a/techpack/audio/asoc/codecs/wcd9xxx-core.c
++++ b/techpack/audio/asoc/codecs/wcd9xxx-core.c
+@@ -527,8 +527,10 @@ static int wcd9xxx_device_init(struct wcd9xxx *wcd9xxx)
+ 		goto fail_cdc_fill;
+ 	}
+ 	wcd9xxx->version = wcd9xxx->codec_type->version;
+-	if (!wcd9xxx->codec_type->dev || !wcd9xxx->codec_type->size)
++	if (!wcd9xxx->codec_type->dev || !wcd9xxx->codec_type->size) {
++		ret = -EINVAL;
+ 		goto fail_cdc_fill;
++	}
+ 
+ 	core_res->parent = wcd9xxx;
+ 	core_res->dev = wcd9xxx->dev;
+@@ -544,7 +546,8 @@ static int wcd9xxx_device_init(struct wcd9xxx *wcd9xxx)
+ 			      wcd9xxx_num_irq_regs(wcd9xxx),
+ 			      wcd9xxx->regmap);
+ 
+-	if (wcd9xxx_core_irq_init(&wcd9xxx->core_res))
++	ret = wcd9xxx_core_irq_init(&wcd9xxx->core_res);
++	if (ret)
+ 		goto err;
+ 
+ 	ret = wcd9xxx_regmap_init_cache(wcd9xxx);
+@@ -1054,6 +1057,7 @@ static int wcd9xxx_i2c_probe(struct i2c_client *client,
+ 			pdata->use_pinctrl = false;
+ 			dev_err(&client->dev, "%s: pinctrl not used for rst_n\n",
+ 				__func__);
++			ret = -EINVAL;
+ 			goto err_codec;
+ 		}
+ 
+@@ -1073,9 +1077,11 @@ static int wcd9xxx_i2c_probe(struct i2c_client *client,
+ 		ret = msm_cdc_init_supplies(wcd9xxx->dev, &wcd9xxx->supplies,
+ 					    pdata->regulator,
+ 					    pdata->num_supplies);
+-		if (!wcd9xxx->supplies) {
++		if (ret || !wcd9xxx->supplies) {
+ 			dev_err(wcd9xxx->dev, "%s: Cannot init wcd supplies\n",
+ 				__func__);
++			if (!ret)
++				ret = -EINVAL;
+ 			goto err_codec;
+ 		}
+ 		ret = msm_cdc_enable_static_supplies(wcd9xxx->dev,
+@@ -1321,6 +1327,7 @@ static int wcd9xxx_slim_probe(struct slim_device *slim)
+ 		pdata->use_pinctrl = false;
+ 		dev_err(&slim->dev, "%s: pinctrl not used for rst_n\n",
+ 			__func__);
++		ret = -EINVAL;
+ 		goto err_codec;
+ 	}
+ 
+@@ -1328,9 +1335,11 @@ static int wcd9xxx_slim_probe(struct slim_device *slim)
+ 	ret = msm_cdc_init_supplies(&slim->dev, &wcd9xxx->supplies,
+ 				    pdata->regulator,
+ 				    pdata->num_supplies);
+-	if (!wcd9xxx->supplies) {
++	if (ret || !wcd9xxx->supplies) {
+ 		dev_err(wcd9xxx->dev, "%s: Cannot init wcd supplies\n",
+ 			__func__);
++		if (!ret)
++			ret = -EINVAL;
+ 		goto err_codec;
+ 	}
+ 	ret = msm_cdc_enable_static_supplies(wcd9xxx->dev,
+diff --git a/techpack/audio/asoc/sdm845.c b/techpack/audio/asoc/sdm845.c
+index 688aced..0058d25 100644
+--- a/techpack/audio/asoc/sdm845.c
++++ b/techpack/audio/asoc/sdm845.c
+@@ -4320,7 +4320,6 @@ static int msm_audrx_init(struct snd_soc_pcm_runtime *rtd)
+ 	tavil_codec_info_create_codec_entry(pdata->codec_root, codec);
+ 
+ done:
+-	codec_reg_done = true;
+ 	return 0;
+ 
+ err:
+@@ -7399,6 +7398,7 @@ static int msm_asoc_machine_probe(struct platform_device *pdev)
+ 	if (!match) {
+ 		dev_err(&pdev->dev, "%s: no matched codec is found.\n",
+ 			__func__);
++		ret = -EINVAL;
+ 		goto err;
+ 	}
+ 
+@@ -7440,6 +7440,7 @@ static int msm_asoc_machine_probe(struct platform_device *pdev)
+ 			ret);
+ 		goto err;
+ 	}
++	codec_reg_done = true;
+ 	dev_info(&pdev->dev, "Sound card %s registered\n", card->name);
+ 	spdev = pdev;
+ 
+@@ -7576,6 +7577,7 @@ static int msm_asoc_machine_remove(struct platform_device *pdev)
+ 
+ 	msm_release_pinctrl(pdev);
+ 	snd_soc_unregister_card(card);
++	codec_reg_done = false;
+ 	return 0;
+ }
+ 
