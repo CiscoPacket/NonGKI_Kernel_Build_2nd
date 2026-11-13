@@ -29,10 +29,10 @@ env:
   DEFCONFIG_ORIGIN_IMAGE: ""
   DEFCONFIG_FROM_BOOT: false
 
-  KERNELSU_SOURCE : "https://github.com/Baka-SU/BakaSU.git"
-  KERNELSU_BRANCH : "v4.2.0-rc3"
+  KERNELSU_SOURCE : ""
+  KERNELSU_BRANCH : ""
 
-  KERNELSU_AUTO_GET : "false" # if u want easy setting kernelsu, u can true.
+  KERNELSU_AUTO_GET : "true" # if u want easy setting kernelsu, u can true.
   KERNELSU_AUTO_FORK : "bakasu" # xxksu, rsuntk, next, bakasu and sukisu
 
   SUSFS_ENABLE : true
@@ -54,13 +54,13 @@ env:
   PACK_METHOD: "AnyKernel3" # Anykernel3 need SOURCE and BRANCH, MKBOOTIMG needn't it.
   PACK_KMODULES: "true" # if u want pack kernel modules (.ko) into Anykernel3.
 
-  KERNELSU_METHOD: "manual" # shell, manual and only.
+  KERNELSU_METHOD: "shell" # shell, manual and only.
 
   PATCHES_SOURCE: "CiscoPacket/NonGKI_Kernel_Build_2nd" # [your_name]/[your_patch] -> gooder123/NonGKI_Patcher
   PATCHES_BRANCH: "mainline" # [your_branch] -> main
 
   SUSFS_FOLDER_FIXED: "Patches" # Fill in your patch prefix directory here. Leave it blank if there isn't one. -> your_folder
-  SUSFS_PATCH_FIXED: "susfs_patch_to_4_9_fixed,dtc_yylloc_fix,susfs_missing_braces_fix,susfs_format_fix,ksu_patch_memory_fix" # Fill in your patches here. If there are multiple patches, please separate them with a comma. Leave it blank if there isn't one. -> patch1,patch2
+  SUSFS_PATCH_FIXED: "susfs_patch_to_4_9_fixed,dtc_yylloc_fix,ksu_patch_memory_fix" # Fill in your patches here. If there are multiple patches, please separate them with a comma. Leave it blank if there isn't one. -> patch1,patch2
 
   REKERNEL_ENABLE: "false" # if u need Re:Kernel.
   DROIDSPACES_ENABLE: "false" # if u need Droidspaces or LXC/Docker.
@@ -79,7 +79,7 @@ env:
   GENERATE_DTB: "false" # if u kernel need DTB , but cannot auto generate it. (Only Anykernel3).
   GENERATE_CHIP: "qcom" # only supported for qcom and mediatek.
 
-  BUILD_DEBUGGER: "false" # Output build errors.
+  BUILD_DEBUGGER: "true" # Output build errors.
   SKIP_PATCH: "false" # Ignore errors found in Patch Debugger.
 
   BUILD_OTHER_CONFIG: "false" # Merge config files.
@@ -130,12 +130,11 @@ jobs:
           rm -rf techpack/audio
           git clone --depth=1 -b dipper-q-oss \
             https://github.com/MiCode/vendor_qcom_opensource_audio-kernel.git techpack/audio
-          # 官方 fragment 把编解码器/声卡驱动编成模块(=m)，而本 workflow 的 AnyKernel3 不打模块，
-          # 模块不会上机 → 全部改为内置(=y)，编进内核镜像才能生效
-          # sed -i 's/=m$/=y/' techpack/audio/config/sdm845auto.conf
+          # 官方 sdm845auto.conf 默认把编解码器/声卡等驱动设为模块(=m)，配合 PACK_KMODULES=true 打包进 AnyKernel3
+          # 保留模块(=m)设置以便 MIUI 正常识别加载
 
           # ---- defconfig 补充 ----
-          echo 'CONFIG_QCA_CLD_WLAN=y' >> arch/arm64/configs/dipper_user_defconfig
+          echo 'CONFIG_QCA_CLD_WLAN=m' >> arch/arm64/configs/dipper_user_defconfig
           echo 'CONFIG_SND=y' >> arch/arm64/configs/dipper_user_defconfig
           echo 'CONFIG_SND_SOC=y' >> arch/arm64/configs/dipper_user_defconfig
           # Nothing

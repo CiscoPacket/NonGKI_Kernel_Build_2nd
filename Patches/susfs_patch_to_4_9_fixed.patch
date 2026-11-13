@@ -1,7 +1,8 @@
 diff --git a/fs/notify/fdinfo.c b/fs/notify/fdinfo.c
+index 4948cc9..b9200cf 100644
 --- a/fs/notify/fdinfo.c
 +++ b/fs/notify/fdinfo.c
-@@ -113,6 +113,60 @@
+@@ -113,6 +113,60 @@ static void inotify_fdinfo(struct seq_file *m, struct fsnotify_mark *mark)
  		 * used only internally to the kernel.
  		 */
  		u32 mask = mark->mask & IN_ALL_EVENTS;
@@ -62,7 +63,7 @@ diff --git a/fs/notify/fdinfo.c b/fs/notify/fdinfo.c
  		seq_printf(m, "inotify wd:%x ino:%lx sdev:%x mask:%x ignored_mask:%x ",
  			   inode_mark->wd, inode->i_ino, inode->i_sb->s_dev,
  			   mask, mark->ignored_mask);
-@@ -131,7 +185,11 @@
+@@ -131,7 +185,11 @@ void inotify_show_fdinfo(struct seq_file *m, struct file *f)
  
  #ifdef CONFIG_FANOTIFY
  
@@ -75,6 +76,7 @@ diff --git a/fs/notify/fdinfo.c b/fs/notify/fdinfo.c
  	unsigned int mflags = 0;
  	struct inode *inode;
 diff --git a/fs/proc/cmdline.c b/fs/proc/cmdline.c
+index cbd82df..a58cef8 100644
 --- a/fs/proc/cmdline.c
 +++ b/fs/proc/cmdline.c
 @@ -3,8 +3,20 @@
@@ -99,9 +101,10 @@ diff --git a/fs/proc/cmdline.c b/fs/proc/cmdline.c
  	return 0;
  }
 diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
+index 9d52df3..3fc4c7d 100644
 --- a/fs/proc/task_mmu.c
 +++ b/fs/proc/task_mmu.c
-@@ -373,9 +373,36 @@
+@@ -373,9 +373,36 @@ show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
  
  	if (file) {
  		struct inode *inode = file_inode(vma->vm_file);
@@ -139,9 +142,10 @@ diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
  
  	/* We don't show the stack guard page in /proc/maps */
 diff --git a/fs/readdir.c b/fs/readdir.c
+index aad77f4..d917464 100644
 --- a/fs/readdir.c
 +++ b/fs/readdir.c
-@@ -217,6 +217,9 @@
+@@ -217,6 +217,9 @@ static int filldir(struct dir_context *ctx, const char *name, int namlen,
  	unsigned long d_ino;
  	int reclen = ALIGN(offsetof(struct linux_dirent, d_name) + namlen + 2,
  		sizeof(long));
@@ -152,9 +156,10 @@ diff --git a/fs/readdir.c b/fs/readdir.c
  	buf->error = -EINVAL;	/* only used if we fail.. */
  	if (reclen > buf->count)
 diff --git a/fs/stat.c b/fs/stat.c
+index 35ed607..850f44b 100644
 --- a/fs/stat.c
 +++ b/fs/stat.c
-@@ -38,6 +38,7 @@
+@@ -38,6 +38,7 @@ void generic_fillattr(struct inode *inode, struct kstat *stat)
  EXPORT_SYMBOL(generic_fillattr);
  
  #ifdef CONFIG_KSU_SUSFS_SUS_KSTAT
@@ -162,7 +167,7 @@ diff --git a/fs/stat.c b/fs/stat.c
  extern bool susfs_is_inode_sus_kstat(struct inode *inode, bool *out_is_fuse);
  extern void susfs_sus_kstat_spoof_generic_fillattr(struct inode *inode, struct kstat *stat, u32 result_mask);
  #endif // #ifdef CONFIG_KSU_SUSFS_SUS_KSTAT
-@@ -57,12 +58,34 @@
+@@ -57,12 +58,34 @@ extern void susfs_sus_kstat_spoof_generic_fillattr(struct inode *inode, struct k
  int vfs_getattr_nosec(struct path *path, struct kstat *stat)
  {
  	struct inode *inode = d_backing_inode(path->dentry);
@@ -197,3 +202,139 @@ diff --git a/fs/stat.c b/fs/stat.c
  }
  
  EXPORT_SYMBOL(vfs_getattr_nosec);
+diff --git a/fs/susfs.c b/fs/susfs.c
+index ebca4a6..8a612bb 100644
+--- a/fs/susfs.c
++++ b/fs/susfs.c
+@@ -254,7 +254,7 @@ static LIST_HEAD(LH_SUS_PATH_LOOP);
+ const struct qstr susfs_fake_qstr_name = QSTR_INIT("..5.u.S", 7); // used to re-test the dcache lookup, make sure you don't have file named like this!!
+ 
+ void susfs_add_sus_path(void __user **user_info) {
+-	struct st_susfs_sus_path info = {0};
++	struct st_susfs_sus_path info = {};
+ 	struct path path;
+ 	struct inode *inode = NULL;
+ 	struct fuse_inode *fi = NULL;
+@@ -307,7 +307,7 @@ void susfs_add_sus_path(void __user **user_info) {
+ 
+ void susfs_add_sus_path_loop(void __user **user_info) {
+ 	struct st_susfs_sus_path_list *new_list = NULL;
+-	struct st_susfs_sus_path info = {0};
++	struct st_susfs_sus_path info = {};
+ 
+ 	if (copy_from_user(&info, (struct st_susfs_sus_path __user*)*user_info, sizeof(info))) {
+ 		info.err = -EFAULT;
+@@ -452,7 +452,7 @@ int susfs_get_data_path(struct path *path) {
+ DEFINE_STATIC_KEY_FALSE(susfs_is_hide_sus_mnts_for_non_su_procs_enabled);
+ 
+ void susfs_set_hide_sus_mnts_for_non_su_procs(void __user **user_info) {
+-	struct st_susfs_hide_sus_mnts_for_non_su_procs info = {0};
++	struct st_susfs_hide_sus_mnts_for_non_su_procs info = {};
+ 
+ 	if (copy_from_user(&info, (struct st_susfs_hide_sus_mnts_for_non_su_procs __user*)*user_info, sizeof(info))) {
+ 		info.err = -EFAULT;
+@@ -556,7 +556,7 @@ static int susfs_mark_inode_sus_kstat(char *target_pathname, struct st_susfs_sus
+ }
+ 
+ void susfs_add_sus_kstat(void __user **user_info) {
+-	struct st_susfs_sus_kstat info = {0};
++	struct st_susfs_sus_kstat info = {};
+ 	struct st_susfs_sus_kstat_hlist *new_entry, *tmp_entry;
+ 	struct hlist_node *tmp_hlist_node;
+ 
+@@ -606,7 +606,7 @@ void susfs_add_sus_kstat(void __user **user_info) {
+ 					new_entry->info.spoofed_atime_tv_nsec, new_entry->info.spoofed_mtime_tv_nsec, new_entry->info.spoofed_ctime_tv_nsec,
+ 					new_entry->info.spoofed_blksize, new_entry->info.spoofed_blocks, new_entry->spoofed_mnt_id);
+ #else
+-			SUSFS_LOGI("is_fuse: %d, is_statically: '%d', target_ino: '%lu', target_dev: '%lu', target_pathname: '%s', spoofed_ino: '%lu', spoofed_dev: '%lu', spoofed_nlink: '%u', spoofed_size: '%u', spoofed_atime_tv_sec: '%ld', spoofed_mtime_tv_sec: '%ld', spoofed_ctime_tv_sec: '%ld', spoofed_atime_tv_nsec: '%ld', spoofed_mtime_tv_nsec: '%ld', spoofed_ctime_tv_nsec: '%ld', spoofed_blksize: '%lu', spoofed_blocks: '%llu', spoofed_mnt_id: '%d', is successfully added to SUS_KSTAT_HLIST\n",
++			SUSFS_LOGI("is_fuse: %d, is_statically: '%d', target_ino: '%lu', target_dev: '%lu', target_pathname: '%s', spoofed_ino: '%lu', spoofed_dev: '%lu', spoofed_nlink: '%u', spoofed_size: '%llu', spoofed_atime_tv_sec: '%ld', spoofed_mtime_tv_sec: '%ld', spoofed_ctime_tv_sec: '%ld', spoofed_atime_tv_nsec: '%ld', spoofed_mtime_tv_nsec: '%ld', spoofed_ctime_tv_nsec: '%ld', spoofed_blksize: '%lu', spoofed_blocks: '%llu', spoofed_mnt_id: '%d', is successfully added to SUS_KSTAT_HLIST\n",
+ 					new_entry->is_fuse,
+ 					new_entry->info.is_statically, new_entry->info.target_ino,
+ 					new_entry->target_dev, new_entry->info.target_pathname,
+@@ -645,7 +645,7 @@ void susfs_add_sus_kstat(void __user **user_info) {
+ 			new_entry->info.spoofed_atime_tv_nsec, new_entry->info.spoofed_mtime_tv_nsec, new_entry->info.spoofed_ctime_tv_nsec,
+ 			new_entry->info.spoofed_blksize, new_entry->info.spoofed_blocks, new_entry->spoofed_mnt_id);
+ #else
+-	SUSFS_LOGI("is_fuse: %d, is_statically: '%d', target_ino: '%lu', target_dev: '%lu', target_pathname: '%s', spoofed_ino: '%lu', spoofed_dev: '%lu', spoofed_nlink: '%u', spoofed_size: '%u', spoofed_atime_tv_sec: '%ld', spoofed_mtime_tv_sec: '%ld', spoofed_ctime_tv_sec: '%ld', spoofed_atime_tv_nsec: '%ld', spoofed_mtime_tv_nsec: '%ld', spoofed_ctime_tv_nsec: '%ld', spoofed_blksize: '%lu', spoofed_blocks: '%llu', spoofed_mnt_id: '%d', is successfully added to SUS_KSTAT_HLIST\n",
++	SUSFS_LOGI("is_fuse: %d, is_statically: '%d', target_ino: '%lu', target_dev: '%lu', target_pathname: '%s', spoofed_ino: '%lu', spoofed_dev: '%lu', spoofed_nlink: '%u', spoofed_size: '%llu', spoofed_atime_tv_sec: '%ld', spoofed_mtime_tv_sec: '%ld', spoofed_ctime_tv_sec: '%ld', spoofed_atime_tv_nsec: '%ld', spoofed_mtime_tv_nsec: '%ld', spoofed_ctime_tv_nsec: '%ld', spoofed_blksize: '%lu', spoofed_blocks: '%llu', spoofed_mnt_id: '%d', is successfully added to SUS_KSTAT_HLIST\n",
+ 			new_entry->is_fuse,
+ 			new_entry->info.is_statically, new_entry->info.target_ino,
+ 			new_entry->target_dev, new_entry->info.target_pathname,
+@@ -670,7 +670,7 @@ void susfs_add_sus_kstat(void __user **user_info) {
+ }
+ 
+ void susfs_update_sus_kstat(void __user **user_info) {
+-	struct st_susfs_sus_kstat info = {0};
++	struct st_susfs_sus_kstat info = {};
+ 	struct st_susfs_sus_kstat_hlist *new_entry, *tmp_entry;
+ 	struct hlist_node *tmp_hlist_node;
+ 	int bkt;
+@@ -915,12 +915,12 @@ void susfs_sus_kstat_spoof_proc_fd_seq_show(int *out_target_mnt_id, unsigned lon
+ 
+ /* spoof_uname */
+ #ifdef CONFIG_KSU_SUSFS_SPOOF_UNAME
+-static struct st_susfs_uname my_uname = {0};
++static struct st_susfs_uname my_uname = {};
+ DEFINE_STATIC_KEY_FALSE(susfs_is_uname_spoof_buffer_set);
+ static DEFINE_SEQLOCK(susfs_uname_seqlock);
+ 
+ void susfs_set_uname(void __user **user_info) {
+-	struct st_susfs_uname info = {0};
++	struct st_susfs_uname info = {};
+ 
+ 	if (copy_from_user(&info, (struct st_susfs_uname __user*)*user_info, sizeof(info))) {
+ 		info.err = -EFAULT;
+@@ -973,7 +973,7 @@ void susfs_spoof_uname(struct new_utsname* tmp) {
+ /* enable_log */
+ #ifdef CONFIG_KSU_SUSFS_ENABLE_LOG
+ void susfs_enable_log(void __user **user_info) {
+-	struct st_susfs_log info = {0};
++	struct st_susfs_log info = {};
+ 
+ 	if (copy_from_user(&info, (struct st_susfs_log __user*)*user_info, sizeof(info))) {
+ 		info.err = -EFAULT;
+@@ -1079,7 +1079,7 @@ static DEFINE_HASHTABLE(OPEN_REDIRECT_HLIST, 14);
+ DEFINE_SRCU(susfs_srcu_open_redirect);
+ 
+ void susfs_add_open_redirect(void __user **user_info) {
+-	struct st_susfs_open_redirect info = {0};
++	struct st_susfs_open_redirect info = {};
+ 	struct st_susfs_open_redirect_hlist *new_entry_target, *new_entry_redirected, *tmp_entry_target, *tmp_entry_redirected;
+ 	struct hlist_node *tmp_hlist_node;
+ 	struct path target_path, redirected_path;
+@@ -1363,7 +1363,7 @@ int susfs_open_redirect_spoof_show_map_vma_srcu(struct inode *inode, unsigned lo
+ /* sus_map */
+ #ifdef CONFIG_KSU_SUSFS_SUS_MAP
+ void susfs_add_sus_map(void __user **user_info) {
+-	struct st_susfs_sus_map info = {0};
++	struct st_susfs_sus_map info = {};
+ 	struct path path;
+ 	struct inode *inode = NULL;
+ 
+@@ -1847,7 +1847,7 @@ bool susfs_is_priority_uid_filtered(uid_t uid) {
+ DEFINE_STATIC_KEY_FALSE(susfs_is_avc_log_spoofing_enabled);
+ 
+ void susfs_set_avc_log_spoofing(void __user **user_info) {
+-	struct st_susfs_avc_log_spoofing info = {0};
++	struct st_susfs_avc_log_spoofing info = {};
+ 
+ 	if (copy_from_user(&info, (struct st_susfs_avc_log_spoofing __user*)*user_info, sizeof(info))) {
+ 		info.err = -EFAULT;
+@@ -1968,7 +1968,7 @@ void susfs_get_enabled_features(void __user **user_info) {
+ 
+ /* show_variant */
+ void susfs_show_variant(void __user **user_info) {
+-	struct st_susfs_variant info = {0};
++	struct st_susfs_variant info = {};
+ 
+ 	if (copy_from_user(&info, (struct st_susfs_variant __user*)*user_info, sizeof(info))) {
+ 		info.err = -EFAULT;
+@@ -1986,7 +1986,7 @@ void susfs_show_variant(void __user **user_info) {
+ 
+ /* show version */
+ void susfs_show_version(void __user **user_info) {
+-	struct st_susfs_version info = {0};
++	struct st_susfs_version info = {};
+ 
+ 	if (copy_from_user(&info, (struct st_susfs_version __user*)*user_info, sizeof(info))) {
+ 		info.err = -EFAULT;
